@@ -1,0 +1,5 @@
+name = DNS
+description = "Module for storing Internet Domain Name System information in Drupal"
+package = "DNS"
+core = 7.x
+

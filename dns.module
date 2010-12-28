@@ -1,0 +1,8 @@
+<?php
+
+/**
+ * @file
+ * Provides basic API methods for dealing with DNS zones and records as 
+ * Drupal entities.
+ */
+

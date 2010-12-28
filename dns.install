@@ -1,0 +1,114 @@
+<?php
+
+/**
+ * @file
+ * Set up schemas for storing DNS zones and records.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function dns_schema() {
+  $schema = array();
+
+  $schema['dns_zones'] = array(
+    'description' => 'A DNS zone, with serial number and ownership information',
+    'fields' => array(
+      'name' => array(
+        'description' => 'The domain name of this zone.',
+        'type' => 'varchar',
+        'length' => 253, // 253 is the limit on domain name length.
+        'not null' => true,
+      ),
+      'created' => array(
+        'description' => 'Date and time for when this zone was created in our system.',
+        'mysql_type' => 'datetime',
+        'pgsql_type' => 'datetime',
+        'not null' => TRUE,
+      ),
+      'changed' => array(
+        'description' => 'Date and time for when the zone information was last changed. Must be updated whenever the zone is changed.',
+        'mysql_type' => 'datetime',
+        'pgsql_type' => 'datetime',
+        'not null' => TRUE,
+      ),
+      'user_id' => array(
+        'description' => 'The {users}.uid that owns this zone; initially, this is the user that created it.',
+        'type' => 'int', 
+        'not null' => TRUE, 
+      ),
+    ),
+    'foreign keys' => array(
+      'zone_owner' => array(
+        'table' => 'users', 
+        'columns' => array('user_id' => 'uid'),
+      ),
+    ), 
+    'primary key' => array('name'),
+  );
+
+  $schema['dns_records'] = array(
+    'description' => 'Store different types of DNS records',
+    'fields' => array(
+      'record_id' => array(
+        'description' => 'Internal record ID for this record.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'prefix' => array(
+        'description' => 'Prefix for the zone name, eg. “test” for the domain name “test.example.com” in the zone “example.com”.',
+        'type' => 'varchar',
+        'length' => 250,
+        'not null' => true,
+      ),
+      'zone_name' => array(
+        'description' => 'The {dns_zones}.name of the zone this record belongs to.',
+        'type' => 'varchar',
+        'length' => 253, // 253 is the limit on domain name length.
+        'not null' => true,
+      ),
+      'record_type' => array(
+        'description' => 'The type of DNS record, eg. A, CNAME, MX, AAAA, etc.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+      ),
+      'ttl' => array(
+        'description' => 'Time-to-live, number of seconds a record can be cached in the DNS system.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'address' => array(
+        'description' => 'IP address for A and AAAA records',
+        'type' => 'text',
+        'pgsql_type' => 'inet', // PostgreSQL has a native data type for IP addresses.
+      ),
+      'name' => array(
+        'description' => 'The DNS name this record points at, for CNAME, MX and similar records',
+        'type' => 'varchar',
+        'length' => 253, // 253 is the limit on domain name length.
+      ),
+      'priority' => array(
+        'description' => 'Record priority for this record. For MX records only.',
+        'type' => 'int',
+        'size' => 'small',
+      ),
+      'text_content' => array(
+        'description' => 'Text content for records that need this, like TXT, SPF, SRV, etc.',
+        'type' => 'text',
+      ),
+    ),
+    'foreign keys' => array(
+      'zone_name' => array(
+        'table' => 'dns_zones', 
+        'columns' => array('zone_name' => 'name'),
+      ),
+    ), 
+    'primary key' => array('record_id'),
+  );
+
+  return $schema;
+}
+
