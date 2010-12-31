@@ -23,19 +23,20 @@ function dns_schema() {
       'created' => array(
         'description' => 'Date and time for when this zone was created in our system.',
         'mysql_type' => 'datetime',
-        'pgsql_type' => 'datetime',
+        'pgsql_type' => 'timestamptz',
         'not null' => TRUE,
       ),
       'changed' => array(
         'description' => 'Date and time for when the zone information was last changed. Must be updated whenever the zone is changed.',
         'mysql_type' => 'datetime',
-        'pgsql_type' => 'datetime',
+        'pgsql_type' => 'timestamptz',
         'not null' => TRUE,
       ),
       'user_id' => array(
         'description' => 'The {users}.uid that owns this zone; initially, this is the user that created it.',
         'type' => 'int', 
         'not null' => TRUE, 
+        'unsigned' => TRUE, 
       ),
     ),
     'foreign keys' => array(
@@ -110,5 +111,15 @@ function dns_schema() {
   );
 
   return $schema;
+}
+
+/**
+ * Implements hook_install().
+ */
+function dns_install() {
+  // Drupal 7 allows you to specify your foreign keys in the schema 
+  // info, but does not actually create them. Create them manually.
+  db_query('ALTER TABLE {dns_zones} ADD FOREIGN KEY (user_id) REFERENCES {users} (uid) ON DELETE CASCADE');
+  db_query('ALTER TABLE {dns_records} ADD FOREIGN KEY (zone_name) REFERENCES {dns_zones} (name) ON DELETE CASCADE');
 }
 
