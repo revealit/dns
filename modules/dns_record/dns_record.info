@@ -1,0 +1,6 @@
+name = DNS record
+description = "Handling DNS zones as a Drupal entity."
+dependencies[] = dns_zone
+package = "DNS"
+core = 7.x
+

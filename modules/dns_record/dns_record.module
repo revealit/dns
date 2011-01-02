@@ -1,0 +1,7 @@
+<?php
+
+/**
+ * @file
+ * Drupal module for dealing with DNS records as entities.
+ */
+

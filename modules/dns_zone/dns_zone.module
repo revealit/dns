@@ -1,0 +1,115 @@
+<?php
+
+/**
+ * @file
+ * Drupal module for dealing with DNS zones as entities.
+ */
+
+/**
+ * Implements hook_entity_info().
+ */
+function dns_zone_entity_info() {
+  $entities = array();
+
+  $entities['dns_zone'] = array(
+    'label' => t('DNS zone'),
+    'controller class' => 'DNSZoneEntityController',
+    'base table' => 'dns_zones',
+    'uri callback' => 'postit_uri',
+    'fieldable' => TRUE,
+    'entity keys' => array(
+      'id' => 'name',
+      'bundle' => 'type', // What is this?
+      'label' => 'zone_name',
+    ),
+    'static cache' => TRUE,
+    'bundle keys' => array(
+      'bundle' => 'type', // What is this?
+    ),
+    'bundles' => array(
+      'dns_zone'=> array(
+        'label' => t('DNS zone'),
+        'admin' => array(
+          'path' => 'admin/dns/zone/manage',
+          'access arguments' => array('administer dns zones'),
+        ),
+      ),
+    ),
+    'load_hook' => 'dns_zone_load',
+    'save callback' => 'dns_zone_save',
+    'deletion callback' => 'dns_zone_delete',
+    'view modes' => array(
+      'administrator' => array(
+        'label' => t('Administrator'),
+        'custom settings' =>  FALSE,
+      ),
+    )
+  );
+  
+  return $entities;
+}
+
+/**
+ * Saves a DNS zone.
+ *
+ * @param $zone
+ *   The full zone object to save.
+ * @return
+ *   The saved zone object.
+ */
+function dns_zone_save($zone) {
+  return entity_get_controller('dns_zone')->save($zone);
+}
+
+/**
+ * Loads an zone by name.
+ */
+function dns_zone_load($zone_name) {
+  $zones = dns_zone_load_multiple(array($zone_name), array());
+  return $zones ? reset($zones) : FALSE;
+}
+
+
+/**
+ * Loads multiple DNS zones by name or based on a set of matching conditions.
+ *
+ * @see entity_load()
+ *
+ * @param $zone_names
+ *   An array of zone names.
+ * @param $conditions
+ *   An array of conditions on the {dns_zones} table in the form
+ *   'field' => $value.
+ * @param $reset
+ *   Whether to reset the internal zone loading cache.
+ * @return
+ *   An array of zone objects indexed by name.
+ */
+function dns_zone_load_multiple($zone_names = array(), $conditions = array(), $reset = FALSE) {
+  return entity_load('dns_zone', $zone_names, $conditions, $reset);
+}
+
+/**
+ * Deletes an zone by name.
+ *
+ * @param $zone_name
+ *   The name of the zone to delete.
+ * @return
+ *   TRUE on success, FALSE otherwise.
+ */
+function dns_zone_delete($zone_name) {
+  return dns_zone_delete_multiple(array($zone_name));
+}
+
+/**
+ * Deletes multiple zones by name.
+ *
+ * @param $zone_names
+ *   An array of zone names to delete.
+ * @return
+ *   TRUE on success, FALSE otherwise.
+ */
+function dns_zone_delete_multiple($zone_names) {
+  return entity_get_controller('dns_zone')->delete($zone_names);
+}
+

@@ -1,0 +1,62 @@
+<?php
+
+/**
+ * @file
+ * Set up schemas for storing DNS zones.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function dns_zone_schema() {
+  $schema = array();
+
+  $schema['dns_zones'] = array(
+    'description' => 'A DNS zone, with serial number and ownership information',
+    'fields' => array(
+      'name' => array(
+        'description' => 'The domain name of this zone.',
+        'type' => 'varchar',
+        'length' => 253, // 253 is the limit on domain name length.
+        'not null' => true,
+      ),
+      'created' => array(
+        'description' => 'Date and time for when this zone was created in our system.',
+        'mysql_type' => 'datetime',
+        'pgsql_type' => 'timestamptz',
+        'not null' => TRUE,
+      ),
+      'changed' => array(
+        'description' => 'Date and time for when the zone information was last changed. Must be updated whenever the zone is changed.',
+        'mysql_type' => 'datetime',
+        'pgsql_type' => 'timestamptz',
+        'not null' => TRUE,
+      ),
+      'user_id' => array(
+        'description' => 'The {users}.uid that owns this zone; initially, this is the user that created it.',
+        'type' => 'int', 
+        'not null' => TRUE, 
+        'unsigned' => TRUE, 
+      ),
+    ),
+    'foreign keys' => array(
+      'zone_owner' => array(
+        'table' => 'users', 
+        'columns' => array('user_id' => 'uid'),
+      ),
+    ), 
+    'primary key' => array('name'),
+  );
+
+  return $schema;
+}
+
+/**
+ * Implements hook_install().
+ */
+function dns_zone_install() {
+  // Drupal 7 allows you to specify your foreign keys in the schema 
+  // info, but does not actually create them. Create it manually.
+  db_query('ALTER TABLE {dns_zones} ADD FOREIGN KEY (user_id) REFERENCES {users} (uid) ON DELETE CASCADE');
+}
+
